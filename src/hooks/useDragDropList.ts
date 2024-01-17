@@ -151,6 +151,20 @@ export function useDragDropList<T, TComponent extends Component>(
       ) {
         return null;
       }
+      if (nearItem[0] != null) {
+        const i1 = nearItem[0];
+        modify(movingIds, (v) => {
+          v[i1] = null;
+          return v;
+        });
+      }
+      if (nearItem[1] != null) {
+        const i1 = nearItem[1];
+        modify(movingIds, (v) => {
+          v[i1] = null;
+          return v;
+        });
+      }
       return [item.id, nearItem[0], nearItem[1]];
     },
     [movingIds, findNeighboursItem]
