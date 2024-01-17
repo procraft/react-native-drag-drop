@@ -55,6 +55,7 @@
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
     "@evilmartians/lefthook": "^1.5.0",
+    "@procraft/react-native-autoscroll": "^0.2.2",
     "@react-native/eslint-config": "^0.72.2",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/jest": "^28.1.2",
@@ -79,6 +80,7 @@
     "@types/react": "17.0.21"
   },
   "peerDependencies": {
+    "@procraft/react-native-autoscroll": "^0.2.2",
     "react": "*",
     "react-native": "*",
     "react-native-gesture-handler": "*",
