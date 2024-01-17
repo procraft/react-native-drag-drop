@@ -114,15 +114,15 @@ export function useDragDropList<T, TComponent extends Component>(
           continue;
         }
 
+        const itemStart = horizontal ? measurement.pageX : measurement.pageY;
         const itemLength = horizontal ? measurement.width : measurement.height;
         if (isBefore) {
-          const itemStart = horizontal ? measurement.pageX : measurement.pageY;
           const minStart = itemStart + (length + itemLength) / 2;
           if (center < minStart) {
             return [undefined, handler.id];
           }
         } else {
-          const minStart = start + (length + itemLength) / 2;
+          const minStart = itemStart + itemLength - (length + itemLength) / 2;
           if (center < minStart) {
             return [undefined, handler.id];
           } else {
