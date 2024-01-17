@@ -25,6 +25,7 @@ import {
   SDLMoveItemBefore,
   SDLRemoveItem,
   type DoublyLinkedList,
+  DLGetIds,
 } from '../helpers';
 import type { DragDropItemType } from '../types';
 import type { DragDropAreaConfig } from '../types/DragDropAreaConfig';
@@ -64,14 +65,25 @@ export function useDragDropArea<T, TComponent extends Component>(
   );
   const itemsList = useSharedValue(itemsListInit);
 
+  const updateItems = useCallback(
+    (ids: (string | number)[]) => {
+      const newItems: DragDropItemType<T>[] = [];
+
+      for (const id of ids) {
+        if (id in itemsListInit.nodes) {
+          newItems.push(itemsListInit.nodes[id]!.data);
+        }
+      }
+
+      setItems(newItems);
+    },
+    [itemsListInit]
+  );
+
   useDerivedValue(() => {
-    const itemsLocal = DLToArray(itemsList.value);
-    console.log(
-      'SET ITEMS',
-      itemsLocal.map((i) => i.id)
-    );
-    runOnJS(setItems)(itemsLocal);
-  }, [itemsList, setItems]);
+    const ids = DLGetIds(itemsList.value);
+    runOnJS(updateItems)(ids);
+  }, [itemsList, updateItems]);
 
   const measureArea = useCallback(() => {
     'worklet';

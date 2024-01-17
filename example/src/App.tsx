@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import { AutoScrollContextRootProvider } from '@procraft/react-native-autoscroll';
 import * as React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import {
@@ -87,10 +87,6 @@ const Item = React.memo(function Item(props: ItemProps) {
     }),
     [isActive]
   );
-
-  useEffect(() => {
-    console.log('MOUNT');
-  }, []);
 
   return (
     <Animated.View

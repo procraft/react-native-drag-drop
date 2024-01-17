@@ -80,6 +80,13 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
     [isActive]
   );
 
+  useEffect(
+    () => () => {
+      onTransitionDone(itemId);
+    },
+    [itemId, onTransitionDone]
+  );
+
   return (
     <Animated.View
       ref={animatedRef}
