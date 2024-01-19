@@ -1,16 +1,176 @@
 import { cModify } from '../utils';
 
+export type DoublyLinkedListNodeId = number | string;
+
 export interface DoublyLinkedListNode<T> {
-  id: string | number;
-  prevId: string | number | null;
-  nextId: string | number | null;
+  id: DoublyLinkedListNodeId;
+  prevId: DoublyLinkedListNodeId | null;
+  nextId: DoublyLinkedListNodeId | null;
   data: T;
 }
 
+export type DoublyLinkedListHistoryItem<K, V = undefined> = {
+  id: number;
+  type: K;
+  data: V;
+};
+
+export type DoublyLinkedListHistory<T> =
+  | DoublyLinkedListHistoryItem<'Add', { id: DoublyLinkedListNodeId; data: T }>
+  | DoublyLinkedListHistoryItem<
+      'AddAfter',
+      {
+        id: DoublyLinkedListNodeId;
+        data: T;
+        afterId: DoublyLinkedListNodeId | null;
+      }
+    >
+  | DoublyLinkedListHistoryItem<
+      'AddBefore',
+      {
+        id: DoublyLinkedListNodeId;
+        data: T;
+        beforeId: DoublyLinkedListNodeId | null;
+      }
+    >
+  | DoublyLinkedListHistoryItem<'Remove', { id: DoublyLinkedListNodeId }>
+  | DoublyLinkedListHistoryItem<
+      'MoveBefore',
+      { id: DoublyLinkedListNodeId; beforeId: DoublyLinkedListNodeId | null }
+    >
+  | DoublyLinkedListHistoryItem<
+      'MoveAfter',
+      { id: DoublyLinkedListNodeId; afterId: DoublyLinkedListNodeId | null }
+    >;
+
+export type DoublyLinkedListHistoryTypes =
+  DoublyLinkedListHistory<unknown>['type'];
+
+export type DoublyLinkedListHistoryType<
+  T,
+  K extends DoublyLinkedListHistoryTypes
+> = Extract<DoublyLinkedListHistory<T>, { type: K }>;
+
+export type DoublyLinkedListNodes<T> = {
+  [key: DoublyLinkedListNodeId]: DoublyLinkedListNode<T>;
+};
+
 export interface DoublyLinkedList<T> {
-  head: string | number | null;
-  tail: string | number | null;
-  nodes: { [key: string | number]: DoublyLinkedListNode<T> };
+  head: DoublyLinkedListNodeId | null;
+  tail: DoublyLinkedListNodeId | null;
+  historyId: number;
+  history: DoublyLinkedListHistory<T>[];
+  nodes: DoublyLinkedListNodes<T>;
+}
+
+// * Constructor
+export function DLCreate<T>(): DoublyLinkedList<T>;
+export function DLCreate<T>(
+  arr: T[],
+  extractId: (item: T) => DoublyLinkedListNodeId
+): DoublyLinkedList<T>;
+export function DLCreate<T>(
+  arr?: T[],
+  extractId?: (item: T) => DoublyLinkedListNodeId
+): DoublyLinkedList<T> {
+  'worklet';
+  const head = arr?.[0] == null ? null : extractId!(arr[0]);
+  const tail = arr?.[0] == null ? null : extractId!(arr[arr.length - 1]!);
+  const nodes =
+    arr?.reduce((acc, curr, i) => {
+      const id = extractId!(curr);
+      const prevId = arr[i - 1] == null ? null : extractId!(arr[i - 1]!);
+      const nextId = arr[i + 1] == null ? null : extractId!(arr[i + 1]!);
+      const item = {
+        id,
+        prevId,
+        nextId,
+        data: curr,
+      };
+      acc[id] = item;
+
+      return acc;
+    }, {} as DoublyLinkedListNodes<T>) ?? {};
+
+  return { head, tail, nodes, historyId: 0, history: [] };
+}
+
+export function DLClone<T>(list: DoublyLinkedList<T>): DoublyLinkedList<T> {
+  'worklet';
+  let currId = list.head;
+  const nodes: DoublyLinkedListNodes<T> = {};
+  while (currId != null) {
+    const node = list.nodes[currId]!;
+    nodes[currId] = { ...node };
+    currId = node.nextId;
+  }
+
+  return { ...list, nodes, history: [...list.history] };
+}
+
+// * Immutable Actions
+
+export function DLFindIndex<T>(
+  list: DoublyLinkedList<T>,
+  id: number | string
+): number {
+  'worklet';
+  let index = 0;
+  let currItemId = list.head;
+  while (currItemId != null) {
+    if (currItemId === id) {
+      return index;
+    }
+    const nextId = list.nodes[currItemId]?.nextId;
+    index++;
+    currItemId = nextId == null ? null : list.nodes[nextId]?.id ?? null;
+  }
+  return -1;
+}
+
+export function DLToArray<T>(list: DoublyLinkedList<T>): T[] {
+  'worklet';
+
+  const result: T[] = [];
+
+  let itemId = list.head;
+  while (itemId != null) {
+    const item = list.nodes[itemId]!;
+    result.push(item.data);
+    itemId = item.nextId;
+  }
+
+  return result;
+}
+
+export function DLGetPrevItem<T>(
+  list: DoublyLinkedList<T>,
+  id: DoublyLinkedListNodeId | null
+) {
+  'worklet';
+  if (id == null) {
+    return list.tail == null ? null : list.nodes[list.tail]!;
+  }
+  const item = list.nodes[id];
+  if (item == null) {
+    return null;
+  }
+  return item.prevId == null ? null : list.nodes[item.prevId]!;
+}
+
+export function DLGetNextItem<T>(
+  list: DoublyLinkedList<T>,
+  id: DoublyLinkedListNodeId | null
+) {
+  'worklet';
+  if (id == null) {
+    return list.head == null ? null : list.nodes[list.head]!;
+  }
+  const item = list.nodes[id];
+  if (item == null) {
+    return null;
+  }
+  return item.nextId == null ? null : list.nodes[item.nextId]!;
 }
 
 export function DLGetIds<T>(list: DoublyLinkedList<T>): (number | string)[] {
@@ -26,178 +186,131 @@ export function DLGetIds<T>(list: DoublyLinkedList<T>): (number | string)[] {
 
   return ids;
 }
+// * Mutatable Actions
 
-export function DLAddItem<T>(
+function DLAddHistory<T, K extends DoublyLinkedListHistory<T>['type']>(
   list: DoublyLinkedList<T>,
-  id: string | number,
+  type: K,
+  data: DoublyLinkedListHistoryType<T, K>['data']
+) {
+  'worklet';
+  const extraSize = list.history.length - 40;
+  if (extraSize > 0) {
+    list.history.splice(0, extraSize + 10);
+  }
+  const id = ++list.historyId;
+
+  list.history.push({
+    id,
+    type,
+    data,
+  } as DoublyLinkedListHistory<T>);
+}
+
+export function DLUpdateAfterAdd<T>(
+  list: DoublyLinkedList<T>,
+  prevItem: DoublyLinkedListNode<T> | null,
+  nextItem: DoublyLinkedListNode<T> | null,
+  id: DoublyLinkedListNodeId,
   data: T
 ) {
   'worklet';
-  const prevItem = (() => {
-    if (list.tail == null) {
-      return null;
-    }
-    return list.nodes[list.tail]!;
-  })();
-  const nextItem = (() => {
-    if (prevItem == null || prevItem.nextId == null) {
-      return null;
-    }
-    return list.nodes[prevItem.nextId]!;
-  })();
+
   if (prevItem != null) {
     prevItem.nextId = id;
-  }
-  if (nextItem != null) {
-    nextItem.prevId = id;
-  }
-  if (prevItem == null) {
+  } else {
     list.head = id;
   }
-  if (nextItem == null) {
+
+  if (nextItem != null) {
+    nextItem.prevId = id;
+  } else {
     list.tail = id;
   }
+
   list.nodes[id] = {
     id,
     prevId: prevItem?.id ?? null,
     nextId: nextItem?.id ?? null,
     data,
   };
-
-  return list;
 }
 
 export function DLAddItemAfter<T>(
   list: DoublyLinkedList<T>,
-  id: string | number,
+  id: DoublyLinkedListNodeId,
   data: T,
-  afterId: string | number | null
+  afterId: DoublyLinkedListNodeId | null,
+  u?: undefined
 ) {
   'worklet';
-  const prevItem = (() => {
-    if (afterId === null) {
-      return null!;
-    }
-    return list.nodes[afterId] ?? null;
-  })();
-  const nextItem = (() => {
-    if (prevItem == null || prevItem.nextId == null) {
-      return null;
-    }
-    return list.nodes[prevItem.nextId]!;
-  })();
-  if (prevItem != null) {
-    prevItem.nextId = id;
+
+  const prevItem =
+    afterId == null
+      ? list.head == null
+        ? null
+        : list.nodes[list.head]
+      : list.nodes[afterId];
+
+  if (prevItem === undefined) {
+    return list;
   }
-  if (nextItem != null) {
-    nextItem.prevId = id;
+
+  const nextItem = DLGetNextItem(list, afterId);
+
+  DLUpdateAfterAdd(list, prevItem, nextItem, id, data);
+
+  if (typeof u !== 'number') {
+    DLAddHistory(list, 'AddAfter', { id, data, afterId });
   }
-  if (prevItem == null) {
-    list.head = id;
-  }
-  if (nextItem == null) {
-    list.tail = id;
-  }
-  list.nodes[id] = {
-    id,
-    prevId: prevItem?.id ?? null,
-    nextId: nextItem?.id ?? null,
-    data,
-  };
 
   return list;
 }
 
 export function DLAddItemBefore<T>(
   list: DoublyLinkedList<T>,
-  id: string | number,
+  id: DoublyLinkedListNodeId,
   data: T,
-  beforeId: string | number | null
+  beforeId: DoublyLinkedListNodeId | null,
+  u?: undefined
 ) {
   'worklet';
-  const nextItem = (() => {
-    if (beforeId == null) {
-      return null;
-    }
-    return list.nodes[beforeId] ?? null;
-  })();
-  const prevItem = (() => {
-    if (nextItem == null || nextItem.prevId == null) {
-      return null;
-    }
-    return list.nodes[nextItem.prevId]!;
-  })();
-  if (prevItem != null) {
-    prevItem.nextId = id;
+  const nextItem =
+    beforeId == null
+      ? list.tail == null
+        ? null
+        : list.nodes[list.tail]
+      : list.nodes[beforeId];
+
+  if (nextItem === undefined) {
+    return list;
   }
-  if (nextItem != null) {
-    nextItem.prevId = id;
+
+  const prevItem = DLGetPrevItem(list, beforeId);
+
+  DLUpdateAfterAdd(list, prevItem, nextItem, id, data);
+
+  if (typeof u !== 'number') {
+    DLAddHistory(list, 'AddBefore', { id, data, beforeId });
   }
-  if (prevItem == null) {
-    list.head = id;
-  }
-  if (nextItem == null) {
-    list.tail = id;
-  }
-  list.nodes[id] = {
-    id,
-    prevId: prevItem?.id ?? null,
-    nextId: nextItem?.id ?? null,
-    data,
-  };
 
   return list;
 }
 
-export function DLFindLoop<T>(list: DoublyLinkedList<T>) {
+export function DLAddItem<T>(
+  list: DoublyLinkedList<T>,
+  id: DoublyLinkedListNodeId,
+  data: T
+) {
   'worklet';
-
-  let item = list.head == null ? null : list.nodes[list.head];
-  let contains: any = {};
-  while (item != null) {
-    if (item.id in contains) {
-      return true;
-    }
-    contains[item.id] = undefined;
-    item = item.nextId == null ? null : list.nodes[item.nextId] ?? null;
-  }
-
-  item = list.tail == null ? null : list.nodes[list.tail];
-  contains = {};
-  while (item != null) {
-    if (item.id in contains) {
-      return true;
-    }
-    contains[item.id] = undefined;
-    item = item.prevId == null ? null : list.nodes[item.prevId] ?? null;
-  }
-
-  return false;
+  DLAddItemBefore(list, id, data, null);
+  return list;
 }
-
-// function DLSetItemAt<T>(
-//   list: DoublyLinkedList<T>,
-//   a: DoublyLinkedListNode<T>,
-//   b: DoublyLinkedListNode<T>
-// ) {
-//   'worklet';
-//   const aPrev = a.prevId == null ? null : list.nodes[a.prevId];
-//   if (aPrev == null) {
-//     list.head = b.id;
-//   } else {
-//     aPrev.nextId = b.id;
-//   }
-//   const aNext = a.nextId == null ? null : list.nodes[a.nextId];
-//   if (aNext == null) {
-//     list.tail = b.id;
-//   } else {
-//     aNext.prevId = b.id;
-//   }
-// }
 
 export function DLRemoveItem<T>(
   list: DoublyLinkedList<T>,
-  id: string | number
+  id: DoublyLinkedListNodeId,
+  u?: undefined
 ) {
   'worklet';
 
@@ -219,100 +332,11 @@ export function DLRemoveItem<T>(
 
   delete list.nodes[id];
 
-  return list;
-}
-
-export function DLSwapItems<T>(
-  list: DoublyLinkedList<T>,
-  a: DoublyLinkedListNode<T>,
-  b: DoublyLinkedListNode<T>
-) {
-  'worklet';
-
-  if (a.prevId === b.id || a.nextId === b.id) {
-    if (a.prevId === b.id) {
-      const prevItem = b.prevId == null ? null : list.nodes[b.prevId];
-      if (prevItem == null) {
-        list.head = a.id;
-      } else {
-        prevItem.nextId = a.id;
-      }
-      const nextItem = a.nextId == null ? null : list.nodes[a.nextId];
-      if (nextItem == null) {
-        list.tail = b.id;
-      } else {
-        nextItem.prevId = b.id;
-      }
-      a.prevId = prevItem?.id ?? null;
-      a.nextId = b.id;
-      b.prevId = a.id;
-      b.nextId = nextItem?.id ?? null;
-    } else {
-      const prevItem = a.prevId == null ? null : list.nodes[a.prevId];
-      if (prevItem == null) {
-        list.head = b.id;
-      } else {
-        prevItem.nextId = b.id;
-      }
-      const nextItem = b.nextId == null ? null : list.nodes[b.nextId];
-      if (nextItem == null) {
-        list.tail = a.id;
-      } else {
-        nextItem.prevId = a.id;
-      }
-      b.prevId = prevItem?.id ?? null;
-      b.nextId = a.id;
-      a.prevId = b.id;
-      a.nextId = nextItem?.id ?? null;
-    }
-  } else {
-    const aPrevItem = a.prevId == null ? null : list.nodes[a.prevId];
-    const aNextItem = a.nextId == null ? null : list.nodes[a.nextId];
-    const bPrevItem = b.prevId == null ? null : list.nodes[b.prevId];
-    const bNextItem = b.nextId == null ? null : list.nodes[b.nextId];
-    if (aPrevItem == null) {
-      list.head = b.id;
-    } else {
-      aPrevItem.nextId = b.id;
-    }
-    if (aNextItem == null) {
-      list.tail = b.id;
-    } else {
-      aNextItem.prevId = b.id;
-    }
-    if (bPrevItem == null) {
-      list.head = a.id;
-    } else {
-      bPrevItem.nextId = a.id;
-    }
-    if (bNextItem == null) {
-      list.head = a.id;
-    } else {
-      bNextItem.nextId = a.id;
-    }
-    a.prevId = bPrevItem?.id ?? null;
-    a.nextId = bNextItem?.id ?? null;
-    b.prevId = aPrevItem?.id ?? null;
-    b.nextId = aNextItem?.id ?? null;
+  if (typeof u !== 'number') {
+    DLAddHistory(list, 'Remove', { id });
   }
 
-  // const aAfter = b.prevId === a.id ? b.id : b.prevId;
-  // const bAfter = a.prevId === b.id ? a.id : a.prevId;
-
-  // DLRemoveItem(list, a.id);
-  // DLRemoveItem(list, b.id);
-
-  // DLAddItem(list, a.id, a.data, aAfter);
-  // DLAddItem(list, b.id, b.data, bAfter);
-
-  // DLSetItemAt(list, a, b);
-  // DLSetItemAt(list, b, a);
-
-  // const [aPrev, aNext] = [a.prevId, a.nextId];
-  // a.prevId = b.prevId === a.id ? b.id : b.prevId;
-  // a.nextId = b.nextId === a.id ? b.id : b.nextId;
-  // b.prevId = aPrev === b.id ? a.id : aPrev;
-  // b.nextId = aNext === b.id ? a.id : aNext;
+  return list;
 }
 
 export function DLMoveItemBefore<T>(
@@ -330,8 +354,16 @@ export function DLMoveItemBefore<T>(
     return list;
   }
 
-  DLRemoveItem(list, itemId);
-  DLAddItemBefore(list, itemId, currItem.data, beforeId);
+  DLRemoveItem(list, itemId, 1 as unknown as undefined);
+  DLAddItemBefore(
+    list,
+    itemId,
+    currItem.data,
+    beforeId,
+    1 as unknown as undefined
+  );
+
+  DLAddHistory(list, 'MoveBefore', { id: itemId, beforeId });
 
   return list;
 }
@@ -351,49 +383,54 @@ export function DLMoveItemAfter<T>(
     return list;
   }
 
-  DLRemoveItem(list, itemId);
-  DLAddItemAfter(list, itemId, currItem.data, afterId);
+  DLRemoveItem(list, itemId, 1 as unknown as undefined);
+  DLAddItemAfter(
+    list,
+    itemId,
+    currItem.data,
+    afterId,
+    1 as unknown as undefined
+  );
+
+  DLAddHistory(list, 'MoveAfter', { id: itemId, afterId });
 
   return list;
 }
 
-export function DLFindIndex<T>(
+export function DLRestoreHistory<T>(
   list: DoublyLinkedList<T>,
-  id: number | string
-): number {
-  'worklet';
-  let index = 0;
-  let currItemId = list.head;
-  while (currItemId != null) {
-    if (currItemId === id) {
-      return index;
-    }
-    const nextId = list.nodes[currItemId]?.nextId;
-    index++;
-    currItemId = nextId == null ? null : list.nodes[nextId]?.id ?? null;
-  }
-  return -1;
-}
-
-export function DLCreate<T>(): DoublyLinkedList<T> {
-  'worklet';
-  return { head: null, tail: null, nodes: {} };
-}
-
-export function DLToArray<T>(list: DoublyLinkedList<T>): T[] {
+  historyItem: DoublyLinkedListHistory<T>
+) {
   'worklet';
 
-  const result: T[] = [];
-
-  let itemId = list.head;
-  while (itemId != null) {
-    const item = list.nodes[itemId]!;
-    result.push(item.data);
-    itemId = item.nextId;
+  if (historyItem.type === 'Add') {
+    DLAddItem(list, historyItem.data.id, historyItem.data.data);
+  } else if (historyItem.type === 'AddAfter') {
+    DLAddItemAfter(
+      list,
+      historyItem.data.id,
+      historyItem.data.data,
+      historyItem.data.afterId
+    );
+  } else if (historyItem.type === 'AddBefore') {
+    DLAddItemBefore(
+      list,
+      historyItem.data.id,
+      historyItem.data.data,
+      historyItem.data.beforeId
+    );
+  } else if (historyItem.type === 'Remove') {
+    DLRemoveItem(list, historyItem.data.id);
+  } else if (historyItem.type === 'MoveAfter') {
+    DLMoveItemAfter(list, historyItem.data.id, historyItem.data.afterId);
+  } else if (historyItem.type === 'MoveBefore') {
+    DLMoveItemBefore(list, historyItem.data.id, historyItem.data.beforeId);
   }
 
-  return result;
+  return list;
 }
+
+// * Worklet Actions
 
 export const SDLAddItem = cModify(DLAddItem);
 export const SDLAddItemAfter = cModify(DLAddItemAfter);

@@ -100,6 +100,13 @@ export function DragDropContextRootView(props: DragDropContextRootViewProps) {
     const areaId = startDragMeasureInfo.value.areaId;
     const itemId = startDragMeasureInfo.value.itemId;
     const areaHandler = dragDropAreas.value[areaId];
+
+    const measureItem = areaHandler?.measureItem;
+
+    if (typeof measureItem !== 'function') {
+      return;
+    }
+
     const itemMeasurement = areaHandler?.measureItem(itemId);
     if (itemMeasurement == null) {
       return;

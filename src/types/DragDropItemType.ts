@@ -1,7 +1,9 @@
 import type { SharedValue } from 'react-native-reanimated';
 
+export type DragDropItemId = number | string;
+
 export interface DragDropItemType<T> {
-  id: string | number;
+  id: DragDropItemId;
   data: T;
 }
 

@@ -7,7 +7,6 @@ import { useDragDropList } from '../hooks';
 import type { DragDropRenderItem } from '../types';
 import type { DragDropAreaConfig } from '../types/DragDropAreaConfig';
 import { DragDropItem } from './DragDropItem';
-import type { RegisterItemHandler } from '../handlers';
 
 export interface DragDropScrollViewProps<T>
   extends Omit<ComponentProps<ScrollView>, 'ref'> {
@@ -50,37 +49,16 @@ export function DragDropScrollView<T>(props: DragDropScrollViewProps<T>) {
       {...otherProps}
     >
       {items.map((item) => (
-        <DragDropItem
+        <DragDropItem<T>
           key={item.id}
           areaId={areaId}
           config={config}
           item={item}
-          renderItem={renderItem as DragDropRenderItem<unknown>}
-          registerItemHandler={
-            registerItemHandler as RegisterItemHandler<unknown>
-          }
+          renderItem={renderItem}
+          registerItemHandler={registerItemHandler}
           onTransitionDone={onTransitionDone}
         />
       ))}
     </AutoScrollScrollView>
   );
 }
-
-// interface ListItemProps<T> {
-//   index: number;
-//   item: DragDropItemType<T>;
-//   renderItem: DragDropRenderItem<T>;
-// }
-
-// const ListItem = React.memo(function ListItem<T>(props: ListItemProps<T>) {
-//   const { index, item, renderItem } = props;
-
-//   const { startDrag } = useContext(DragDropContext);
-
-//   const indexAnim = useSharedValue(index);
-//   useEffect(() => {
-//     indexAnim.value = index;
-//   }, [index, indexAnim]);
-
-//   return renderItem(item, indexAnim) ?? null;
-// });

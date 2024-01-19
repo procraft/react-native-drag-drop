@@ -10,7 +10,8 @@ import type { HoveredItemInfo } from '../types';
 
 export function useHoveredItemAutoScroll(
   animatedRef: AnimatedRef<Animated.View>,
-  hoveredItemMeta: SharedValue<HoveredItemInfo | null>
+  hoveredItemMeta: SharedValue<HoveredItemInfo | null>,
+  hoveredItemRendered: SharedValue<boolean>
 ) {
   const { startScroll, stopScroll } = useContext(AutoScrollContext);
 
@@ -20,7 +21,7 @@ export function useHoveredItemAutoScroll(
       return;
     }
 
-    if (animatedRef() === -1) {
+    if (animatedRef() === -1 || !hoveredItemRendered.value) {
       return;
     }
     const measurement = measure(animatedRef);

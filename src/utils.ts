@@ -1,5 +1,20 @@
 import type { MeasuredDimensions, SharedValue } from 'react-native-reanimated';
 
+export function innerModify<T, A extends unknown[]>(
+  modifier: (value: T, ...args: A) => T | void,
+  ...args: A
+) {
+  'worklet';
+  return (value: T) => {
+    'worklet';
+    const r = modifier(value, ...args);
+    if (r === undefined) {
+      return value;
+    }
+    return r;
+  };
+}
+
 export function modify<T>(
   value: SharedValue<T>,
   modifier: (value: T) => T,
@@ -10,20 +25,24 @@ export function modify<T>(
 }
 
 export function cModify<T, A extends unknown[]>(
-  modifier: (value: T, ...args: A) => T
+  modifier: (value: T, ...args: A) => T | void
 ) {
   'worklet';
   return (value: SharedValue<T>, args: A, forceUpdate?: boolean) => {
     'worklet';
-    modify(
-      value,
-      (v) => {
-        'worklet';
-        modifier(v, ...args);
-        return v;
-      },
-      forceUpdate
-    );
+    modify(value, innerModify(modifier, ...args), forceUpdate);
+  };
+}
+
+export function toModify<T, A extends unknown[]>(
+  value: SharedValue<T>,
+  modifier: (value: T, ...args: A) => T | void,
+  forceUpdate?: boolean
+) {
+  'worklet';
+  return (...args: A) => {
+    'worklet';
+    modify(value, innerModify(modifier, ...args), forceUpdate);
   };
 }
 

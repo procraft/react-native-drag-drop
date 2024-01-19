@@ -12,3 +12,8 @@ export interface Size {
   width: number;
   height: number;
 }
+
+export interface ItemPosition {
+  afterId?: string | number | null;
+  beforeId?: string | number | null;
+}

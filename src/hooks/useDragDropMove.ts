@@ -34,8 +34,6 @@ export function useDragDropMove(
       return;
     }
 
-    startScroll({ measurement: hoveredItemMeasurement.value });
-
     const { area: infoArea, item: infoItem } = dragDropItemInfo.value;
     for (const areaId of Object.keys(dragDropAreas.value)) {
       const areaHandler = dragDropAreas.value[areaId];
@@ -43,7 +41,8 @@ export function useDragDropMove(
 
       const canPutByGroup =
         (infoArea.groupId == null && infoArea.id.toString() === areaId) ||
-        (infoArea.groupId != null && infoArea.groupId === areaHandler?.groupId);
+        (infoArea.groupId != null &&
+          infoArea.groupId === areaHandler?.config?.groupId);
 
       if (
         areaMeasurement != null &&
@@ -129,7 +128,7 @@ export function useDragDropMove(
             return;
           }
           const areaId = dragDropItemInfo.value.area.id;
-          const areaAxis = dragDropAreas.value[areaId]?.axis;
+          const areaAxis = dragDropAreas.value[areaId]?.config?.axis;
           const position = dragDropItemInfo.value.position;
 
           const newPosition = {
@@ -147,6 +146,10 @@ export function useDragDropMove(
 
           moveHoveredItem(newPosition);
           hoveredItemMeasurement.value = measureHoveredItem();
+
+          if (hoveredItemMeasurement.value != null) {
+            startScroll({ measurement: hoveredItemMeasurement.value });
+          }
         })
         .onFinalize(() => {
           isMoving.value = false;
@@ -165,9 +168,10 @@ export function useDragDropMove(
       isMoving,
       dragDropItemInfo,
       dragDropAreas,
-      hoveredItemMeasurement,
       moveHoveredItem,
+      hoveredItemMeasurement,
       measureHoveredItem,
+      startScroll,
     ]
   );
 }

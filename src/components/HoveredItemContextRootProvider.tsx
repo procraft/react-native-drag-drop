@@ -20,10 +20,11 @@ export function HoveredItemContextRootProvider(
   const { children } = props;
 
   const animatedRef = useAnimatedRef<Animated.View>();
+  const hoveredItemRendered = useSharedValue(false);
   const [hoveredItemJSX, setHoveredItemJSX] = useState<JSX.Element>();
   const hoveredItemInfo = useSharedValue<HoveredItemInfo | null>(null);
 
-  useHoveredItemAutoScroll(animatedRef, hoveredItemInfo);
+  useHoveredItemAutoScroll(animatedRef, hoveredItemInfo, hoveredItemRendered);
 
   const setHoveredItem = useCallback<HoveredItemContextType['setHoveredItem']>(
     (jsx, position, size) => {
@@ -92,13 +93,12 @@ export function HoveredItemContextRootProvider(
   return (
     <HoveredItemContext.Provider value={value}>
       {children}
-      {hoveredItemJSX == null || (
-        <HoveredItem
-          animatedRef={animatedRef}
-          hoveredItemJSX={hoveredItemJSX}
-          hoveredItemInfo={hoveredItemInfo}
-        />
-      )}
+      <HoveredItem
+        animatedRef={animatedRef}
+        hoveredItemJSX={hoveredItemJSX}
+        hoveredItemInfo={hoveredItemInfo}
+        hoveredItemRendered={hoveredItemRendered}
+      />
     </HoveredItemContext.Provider>
   );
 }

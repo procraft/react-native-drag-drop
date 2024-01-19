@@ -69,9 +69,10 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
     [item, measureItem]
   );
 
-  useEffect(() => {
-    return registerItemHandler(itemId, handler);
-  }, [handler, itemId, registerItemHandler]);
+  useEffect(
+    () => registerItemHandler(itemId, handler),
+    [handler, itemId, registerItemHandler]
+  );
 
   const viewStyle = useAnimatedStyle(
     () => ({
@@ -100,4 +101,4 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
       {jsx}
     </Animated.View>
   );
-});
+}) as <T>(props: DragDropItemProps<T>) => JSX.Element;
