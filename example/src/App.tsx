@@ -9,7 +9,7 @@ import {
   DragDropScrollView,
   HoveredItemContextRootProvider,
   type DragDropRenderItem,
-} from 'react-native-drag-drop';
+} from '@procraft/react-native-drag-drop';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
