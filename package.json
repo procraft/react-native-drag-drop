@@ -80,7 +80,7 @@
     "@types/react": "17.0.21"
   },
   "peerDependencies": {
-    "@procraft/react-native-autoscroll": "^0.2.2",
+    "@procraft/react-native-autoscroll": "^0.2.4",
     "react": "*",
     "react-native": "*",
     "react-native-gesture-handler": "*",

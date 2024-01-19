@@ -3216,6 +3216,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@procraft/react-native-autoscroll@npm:^0.2.4":
+  version: 0.2.4
+  resolution: "@procraft/react-native-autoscroll@npm:0.2.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-gesture-handler: "*"
+    react-native-reanimated: "*"
+  checksum: 4b0c9ec65c5f6a4367be62c1d9d584d6bad49bdbecbd8e1b40fe5f88b177ba17be1595b890ca579620676865ac22f2c583be5d5326e8a998896e21337ae0e51a
+  languageName: node
+  linkType: hard
+
 "@procraft/react-native-drag-drop@workspace:.":
   version: 0.0.0-use.local
   resolution: "@procraft/react-native-drag-drop@workspace:."
@@ -3243,7 +3255,7 @@ __metadata:
     release-it: ^15.0.0
     typescript: ^5.0.2
   peerDependencies:
-    "@procraft/react-native-autoscroll": ^0.2.2
+    "@procraft/react-native-autoscroll": ^0.2.4
     react: "*"
     react-native: "*"
     react-native-gesture-handler: "*"
@@ -14800,7 +14812,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.20.0
     "@expo/webpack-config": ^18.0.1
-    "@procraft/react-native-autoscroll": ^0.2.2
+    "@procraft/react-native-autoscroll": ^0.2.4
     babel-loader: ^8.1.0
     babel-plugin-module-resolver: ^5.0.0
     expo: ~49.0.15
