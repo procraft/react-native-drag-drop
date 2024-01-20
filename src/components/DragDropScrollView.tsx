@@ -4,7 +4,7 @@ import type { ScrollView } from 'react-native-gesture-handler';
 import type Animated from 'react-native-reanimated';
 import { useAnimatedRef, type AnimatedRef } from 'react-native-reanimated';
 import { useDragDropList } from '../hooks';
-import type { DragDropRenderItem } from '../types';
+import type { DragDropListHandlers, DragDropRenderItem } from '../types';
 import type { DragDropAreaConfig } from '../types/DragDropAreaConfig';
 import { DragDropItem } from './DragDropItem';
 
@@ -13,9 +13,11 @@ export interface DragDropScrollViewProps<T>
   items: T[];
   innerRef?: AnimatedRef<Animated.ScrollView>;
   config?: DragDropAreaConfig;
-  onChange?: (items: T[], from: number, to: number) => void;
   renderItem: DragDropRenderItem<T>;
   extractId: (item: T) => number | string;
+  onItemChangedPosition?: DragDropListHandlers<T>['onItemChangedPosition'];
+  onItemAdded?: DragDropListHandlers<T>['onItemAdded'];
+  onItemRemoved?: DragDropListHandlers<T>['onItemRemoved'];
 }
 
 export function DragDropScrollView<T>(props: DragDropScrollViewProps<T>) {
@@ -26,7 +28,9 @@ export function DragDropScrollView<T>(props: DragDropScrollViewProps<T>) {
     innerRef,
     renderItem,
     extractId,
-    // onChange,
+    onItemChangedPosition,
+    onItemAdded,
+    onItemRemoved,
     ...otherProps
   } = props;
 
@@ -39,7 +43,10 @@ export function DragDropScrollView<T>(props: DragDropScrollViewProps<T>) {
       horizontalProps ?? false,
       initialItems,
       extractId,
-      config
+      config,
+      onItemChangedPosition,
+      onItemAdded,
+      onItemRemoved
     );
 
   return (

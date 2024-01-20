@@ -16,7 +16,11 @@ import {
   type DoublyLinkedListHistory,
   type DoublyLinkedListHistoryType,
 } from '../helpers';
-import type { DragDropItemId, DragDropItemType } from '../types';
+import type {
+  DragDropItemId,
+  DragDropItemType,
+  DragDropListHandlers,
+} from '../types';
 import { useLazyRef } from './useLazyRef';
 
 const ACTIONS_REMOVE: DoublyLinkedListHistory<unknown>['type'][] = ['Remove'];
@@ -33,9 +37,9 @@ const ACTIONS_MOVE: DoublyLinkedListHistory<unknown>['type'][] = [
 export function useDragDropListItems<T>(
   initialItems: T[],
   extractId: (item: T) => DragDropItemId,
-  onItemChangedPosition?: (items: T[], from: number, to: number) => void,
-  onItemAdded?: (items: T[], item: T) => void,
-  onItemRemoved?: (items: T[], item: T) => void
+  onItemChangedPosition?: DragDropListHandlers<T>['onItemChangedPosition'],
+  onItemAdded?: DragDropListHandlers<T>['onItemAdded'],
+  onItemRemoved?: DragDropListHandlers<T>['onItemRemoved']
 ) {
   const itemsListRef = useLazyRef(() =>
     DLCreate(convertArrToDragDrop(initialItems, extractId), extractDragDropId)
