@@ -6,6 +6,7 @@ export * from './useDragDropListItemsActions';
 export * from './useDragDropListItemsHandler';
 export * from './useDragDropListItemsLayout';
 export * from './useDragDropMove';
+export * from './useExistsAnimatedRef';
 export * from './useHoveredItemAutoScroll';
 export * from './useLazyRef';
 export * from './useSharedCallback';

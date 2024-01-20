@@ -2,12 +2,12 @@ import React, { useCallback, useContext, useEffect, useMemo } from 'react';
 import Animated, {
   LinearTransition,
   measure,
-  useAnimatedRef,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
 import { DragDropContext } from '../contexts';
 import type { DragDropItemHandler, RegisterItemHandler } from '../handlers';
+import { useExistsAnimatedRef } from '../hooks';
 import type { DragDropItemType, DragDropRenderItem } from '../types';
 import type { DragDropAreaConfig } from '../types/DragDropAreaConfig';
 
@@ -35,8 +35,10 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
 
   const { startDrag } = useContext(DragDropContext);
 
-  const animatedRef = useAnimatedRef<Animated.View>();
+  const [animatedRef, componentExists, ref] =
+    useExistsAnimatedRef<Animated.View>();
   const isActive = useSharedValue(false);
+  const size = useSharedValue<{ width: number; height: number } | null>(null);
 
   const itemId = item.id;
   const drag = useCallback(() => {
@@ -61,8 +63,11 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
 
   const measureItem = useCallback(() => {
     'worklet';
+    if (!componentExists.value) {
+      return null;
+    }
     return measure(animatedRef);
-  }, [animatedRef]);
+  }, [animatedRef, componentExists]);
 
   const handler = useMemo<DragDropItemHandler<T>>(
     () => ({ id: item.id, data: item.data, measure: measureItem }),
@@ -90,12 +95,18 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
 
   return (
     <Animated.View
-      ref={animatedRef}
+      ref={ref}
       layout={LinearTransition.duration(200).withCallback((f) => {
         if (f) {
           onTransitionDone(itemId);
         }
       })}
+      onLayout={({ nativeEvent }) => {
+        size.value = {
+          width: nativeEvent.layout.width,
+          height: nativeEvent.layout.height,
+        };
+      }}
       style={viewStyle}
     >
       {jsx}
