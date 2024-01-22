@@ -3,14 +3,14 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useDerivedValue,
-  type AnimatedRef,
   type SharedValue,
 } from 'react-native-reanimated';
+import type { ExistsAnimatedRef } from '../hooks';
 import type { HoveredItemInfo } from '../types';
 import { modify } from '../utils';
 
 export interface HoveredItemProps {
-  animatedRef: AnimatedRef<Animated.View>;
+  animatedRef: ExistsAnimatedRef<Animated.View>;
   hoveredItemJSX?: JSX.Element;
   hoveredItemInfo: SharedValue<HoveredItemInfo | null>;
   hoveredItemRendered: SharedValue<boolean>;

@@ -1,11 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import Animated, {
-  measure,
-  useAnimatedRef,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Animated, { measure, useSharedValue } from 'react-native-reanimated';
 import { HoveredItemContext, type HoveredItemContextType } from '../contexts';
-import { useHoveredItemAutoScroll } from '../hooks';
+import { useExistsAnimatedRef, useHoveredItemAutoScroll } from '../hooks';
 import type { HoveredItemInfo } from '../types';
 import { modify } from '../utils';
 import { HoveredItem } from './HoveredItem';
@@ -19,7 +15,7 @@ export function HoveredItemContextRootProvider(
 ) {
   const { children } = props;
 
-  const animatedRef = useAnimatedRef<Animated.View>();
+  const [animatedRef, isRefExists, ref] = useExistsAnimatedRef<Animated.View>();
   const hoveredItemRendered = useSharedValue(false);
   const [hoveredItemJSX, setHoveredItemJSX] = useState<JSX.Element>();
   const hoveredItemInfo = useSharedValue<HoveredItemInfo | null>(null);
@@ -74,11 +70,11 @@ export function HoveredItemContextRootProvider(
     HoveredItemContextType['measureHoveredItem']
   >(() => {
     'worklet';
-    if (animatedRef() === -1) {
+    if (!isRefExists.value) {
       return null;
     }
     return measure(animatedRef);
-  }, [animatedRef]);
+  }, [animatedRef, isRefExists]);
 
   const value = useMemo<HoveredItemContextType>(
     () => ({
@@ -94,7 +90,7 @@ export function HoveredItemContextRootProvider(
     <HoveredItemContext.Provider value={value}>
       {children}
       <HoveredItem
-        animatedRef={animatedRef}
+        animatedRef={ref}
         hoveredItemJSX={hoveredItemJSX}
         hoveredItemInfo={hoveredItemInfo}
         hoveredItemRendered={hoveredItemRendered}
