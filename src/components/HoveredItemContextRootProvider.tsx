@@ -1,5 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import Animated, { measure, useSharedValue } from 'react-native-reanimated';
+import Animated, {
+  measure,
+  useDerivedValue,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { HoveredItemContext, type HoveredItemContextType } from '../contexts';
 import { useExistsAnimatedRef, useHoveredItemAutoScroll } from '../hooks';
 import type { HoveredItemInfo } from '../types';
@@ -16,9 +20,11 @@ export function HoveredItemContextRootProvider(
   const { children } = props;
 
   const [animatedRef, isRefExists, ref] = useExistsAnimatedRef<Animated.View>();
-  const hoveredItemRendered = useSharedValue(false);
   const [hoveredItemJSX, setHoveredItemJSX] = useState<JSX.Element>();
   const hoveredItemInfo = useSharedValue<HoveredItemInfo | null>(null);
+  const hoveredItemRendered = useDerivedValue(() => {
+    return isRefExists.value;
+  }, [isRefExists]);
 
   useHoveredItemAutoScroll(animatedRef, hoveredItemInfo, hoveredItemRendered);
 
@@ -93,7 +99,6 @@ export function HoveredItemContextRootProvider(
         animatedRef={ref}
         hoveredItemJSX={hoveredItemJSX}
         hoveredItemInfo={hoveredItemInfo}
-        hoveredItemRendered={hoveredItemRendered}
       />
     </HoveredItemContext.Provider>
   );

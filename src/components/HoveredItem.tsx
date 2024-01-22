@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -7,46 +7,17 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { ExistsAnimatedRef } from '../hooks';
 import type { HoveredItemInfo } from '../types';
-import { modify } from '../utils';
 
 export interface HoveredItemProps {
   animatedRef: ExistsAnimatedRef<Animated.View>;
   hoveredItemJSX?: JSX.Element;
   hoveredItemInfo: SharedValue<HoveredItemInfo | null>;
-  hoveredItemRendered: SharedValue<boolean>;
 }
 
 export function HoveredItem(props: HoveredItemProps) {
-  const { animatedRef, hoveredItemJSX, hoveredItemInfo, hoveredItemRendered } =
-    props;
+  const { animatedRef, hoveredItemJSX, hoveredItemInfo } = props;
 
   const [ready, setReady] = useState(hoveredItemInfo.value != null);
-
-  useEffect(() => {
-    if (ready) {
-      modify(
-        hoveredItemRendered,
-        (v) => {
-          'worklet';
-          v = true;
-          return v;
-        },
-        true
-      );
-    }
-
-    return () => {
-      modify(
-        hoveredItemRendered,
-        (v) => {
-          'worklet';
-          v = false;
-          return v;
-        },
-        true
-      );
-    };
-  }, [hoveredItemRendered, ready]);
 
   useDerivedValue(() => {
     runOnJS(setReady)(hoveredItemInfo.value != null);
