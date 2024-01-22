@@ -1,9 +1,13 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import React, { useCallback } from 'react';
+import { Pressable, StyleSheet, Text, type ViewProps } from 'react-native';
 import Animated, {
   useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export interface ItemType {
   id: string;
@@ -14,27 +18,47 @@ export interface ItemType {
 export interface SimpleItemProps {
   item: ItemType;
   isActive: SharedValue<boolean>;
+  minHeight?: SharedValue<number>;
   drag: () => void;
+  onSize?: (width: number, height: number) => void;
 }
 
 export const SimpleItem = React.memo(function SimpleItem(
   props: SimpleItemProps
 ) {
-  const { item, isActive, drag } = props;
+  const { item, isActive, minHeight, drag, onSize } = props;
+
+  const size = useSharedValue<{ width: number; height: number } | null>(null);
+
+  useDerivedValue(() => {
+    if (size.value != null && onSize != null) {
+      onSize(size.value.width, size.value.height);
+    }
+  }, [onSize]);
+
+  const onLayout = useCallback<NonNullable<ViewProps['onLayout']>>(
+    ({ nativeEvent }) => {
+      size.value = nativeEvent.layout;
+    },
+    [size]
+  );
 
   const style = useAnimatedStyle(
     () => ({
+      minHeight: minHeight?.value ?? 0,
       borderColor: isActive.value ? 'red' : 'black',
     }),
     [isActive]
   );
 
   return (
-    <Animated.View style={[styles.item, style]}>
-      <Pressable style={styles.btn} onLongPress={drag}>
-        <Text>{item.text}</Text>
-      </Pressable>
-    </Animated.View>
+    <AnimatedPressable
+      style={[styles.item, style]}
+      onLayout={onLayout}
+      onLongPress={drag}
+    >
+      <Text>{item.text}</Text>
+    </AnimatedPressable>
   );
 });
 
@@ -44,8 +68,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginVertical: 4,
     backgroundColor: 'white',
-  },
-  btn: {
     paddingVertical: 8,
     paddingHorizontal: 12,
   },

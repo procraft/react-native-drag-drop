@@ -8,10 +8,11 @@ import {
 } from '@procraft/react-native-drag-drop';
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PairsDragDrop } from './PairsDragDrop';
 import { SimpleDragDrop } from './SimpleDragDrop';
 
 export default function App() {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(1);
   const onNextStep = useCallback(() => {
     setStep((s) => (s + 1) % 2);
   }, []);
@@ -29,6 +30,7 @@ export default function App() {
                   </Pressable>
                 </View>
                 {step === 0 && <SimpleDragDrop style={styles.scroll} />}
+                {step === 1 && <PairsDragDrop style={styles.scroll} />}
               </View>
             </SafeAreaView>
           </DragDropContextRootView>
