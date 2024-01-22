@@ -3,7 +3,10 @@ import Animated, {
   LinearTransition,
   measure,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
+  withDelay,
+  withTiming,
 } from 'react-native-reanimated';
 import { DragDropContext } from '../contexts';
 import type { DragDropItemHandler, RegisterItemHandler } from '../handlers';
@@ -79,11 +82,22 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
     [handler, itemId, registerItemHandler]
   );
 
+  const opacityAnim = useDerivedValue(() => {
+    if (isActive.value)
+      return withDelay(
+        50,
+        withTiming(0, {
+          duration: 0,
+        })
+      );
+    else return 1.0;
+  }, [isActive]);
+
   const viewStyle = useAnimatedStyle(
     () => ({
-      opacity: isActive.value ? 0.0 : 1.0,
+      opacity: opacityAnim.value,
     }),
-    [isActive]
+    [opacityAnim]
   );
 
   useEffect(
