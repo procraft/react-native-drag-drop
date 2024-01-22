@@ -3204,27 +3204,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@procraft/react-native-autoscroll@npm:^0.2.2":
-  version: 0.2.2
-  resolution: "@procraft/react-native-autoscroll@npm:0.2.2"
+"@procraft/react-native-autoscroll@npm:^0.2.5":
+  version: 0.2.5
+  resolution: "@procraft/react-native-autoscroll@npm:0.2.5"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-gesture-handler: "*"
     react-native-reanimated: "*"
-  checksum: 8a67bc41bec3336a936512d4bbbde610629ecd80e512f5a05bcb3eaeb10696cff041c731a184dfda670179b574b3cefb3eca65a63cc89da3ac93476d1a0bc966
-  languageName: node
-  linkType: hard
-
-"@procraft/react-native-autoscroll@npm:^0.2.4":
-  version: 0.2.4
-  resolution: "@procraft/react-native-autoscroll@npm:0.2.4"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-    react-native-gesture-handler: "*"
-    react-native-reanimated: "*"
-  checksum: 4b0c9ec65c5f6a4367be62c1d9d584d6bad49bdbecbd8e1b40fe5f88b177ba17be1595b890ca579620676865ac22f2c583be5d5326e8a998896e21337ae0e51a
+  checksum: 652bc5a9750b8f7790888801c43d17e72eb67d6012a79cb5b23a1f926bc6e2361f7b37adc430eaf8dbc663c367c47b17f341be29e3f620219ee54430807867a6
   languageName: node
   linkType: hard
 
@@ -3234,7 +3222,7 @@ __metadata:
   dependencies:
     "@commitlint/config-conventional": ^17.0.2
     "@evilmartians/lefthook": ^1.5.0
-    "@procraft/react-native-autoscroll": ^0.2.2
+    "@procraft/react-native-autoscroll": ^0.2.5
     "@react-native/eslint-config": ^0.72.2
     "@release-it/conventional-changelog": ^5.0.0
     "@types/jest": ^28.1.2
@@ -14812,7 +14800,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.20.0
     "@expo/webpack-config": ^18.0.1
-    "@procraft/react-native-autoscroll": ^0.2.4
+    "@procraft/react-native-autoscroll": ^0.2.5
     babel-loader: ^8.1.0
     babel-plugin-module-resolver: ^5.0.0
     expo: ~49.0.15

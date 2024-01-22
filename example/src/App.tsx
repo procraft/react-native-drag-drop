@@ -1,62 +1,34 @@
-/* eslint-disable react-native/no-inline-styles */
 import { AutoScrollContextRootProvider } from '@procraft/react-native-autoscroll';
 import * as React from 'react';
 import { useCallback, useState } from 'react';
 
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import {
   DragDropContextRootView,
-  DragDropScrollView,
   HoveredItemContextRootProvider,
-  type DragDropRenderItem,
 } from '@procraft/react-native-drag-drop';
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedStyle,
-  type SharedValue,
-} from 'react-native-reanimated';
+import { SimpleDragDrop } from './SimpleDragDrop';
 
 export default function App() {
-  const [items] = useState<ItemType[]>(() =>
-    Array.from({ length: 50 }).map((_, i) => ({
-      id: (i + 1).toString(),
-      text: Array.from({ length: i + 1 })
-        .map(() => (i + 1).toString())
-        .join(' | '),
-    }))
-  );
-
-  const renderItem = useCallback<DragDropRenderItem<ItemType>>(
-    (item, isActive, drag) => (
-      <Item item={item.data} isActive={isActive} drag={drag} />
-    ),
-    []
-  );
-  const extractId = useCallback((item: ItemType) => item.id, []);
+  const [step, setStep] = useState(0);
+  const onNextStep = useCallback(() => {
+    setStep((s) => (s + 1) % 2);
+  }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.full}>
       <AutoScrollContextRootProvider>
         <HoveredItemContextRootProvider>
-          <DragDropContextRootView style={{ flex: 1 }}>
-            <SafeAreaView style={{ flex: 1 }}>
+          <DragDropContextRootView style={styles.full}>
+            <SafeAreaView style={styles.full}>
               <View style={styles.container}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-around',
-                  }}
-                >
-                  <Pressable>
-                    <Text>HeeeE</Text>
+                <View style={styles.header}>
+                  <Pressable style={styles.btn} onPress={onNextStep}>
+                    <Text>Next Example</Text>
                   </Pressable>
                 </View>
-                <DragDropScrollView
-                  items={items}
-                  renderItem={renderItem}
-                  extractId={extractId}
-                  style={styles.scroll}
-                />
+                {step === 0 && <SimpleDragDrop style={styles.scroll} />}
               </View>
             </SafeAreaView>
           </DragDropContextRootView>
@@ -66,92 +38,21 @@ export default function App() {
   );
 }
 
-interface ItemType {
-  id: string;
-  text: string;
-  color?: string;
-}
-
-interface ItemProps {
-  item: ItemType;
-  isActive: SharedValue<boolean>;
-  drag: () => void;
-}
-
-const Item = React.memo(function Item(props: ItemProps) {
-  const { item, isActive, drag } = props;
-
-  const style = useAnimatedStyle(
-    () => ({
-      borderColor: isActive.value ? 'red' : 'black',
-    }),
-    [isActive]
-  );
-
-  return (
-    <Animated.View
-      style={[
-        {
-          borderRadius: 4,
-          borderWidth: 1,
-          marginVertical: 4,
-          backgroundColor: 'white',
-        },
-        style,
-      ]}
-    >
-      <Pressable
-        style={{
-          paddingVertical: 8,
-          paddingHorizontal: 12,
-        }}
-        onLongPress={drag}
-      >
-        <Text>{item.text}</Text>
-      </Pressable>
-    </Animated.View>
-  );
-});
-
-// function Item2() {
-//   const { setHoveredItem } = useContext(HoveredItemContext);
-//   const d = useWindowDimensions();
-//   const size = useRef<{ w: number; h: number } | null>(null);
-
-//   return (
-//     <Pressable
-//       style={{
-//         borderWidth: 1,
-//         borderRadius: 4,
-//         paddingHorizontal: 8,
-//         paddingVertical: 4,
-//       }}
-//       onLayout={({ nativeEvent }) => {
-//         size.current = {
-//           w: nativeEvent.layout.width,
-//           h: nativeEvent.layout.height,
-//         };
-//       }}
-//       onPress={() => {
-//         if (size.current == null) {
-//           return;
-//         }
-//         setHoveredItem(
-//           <Item2 />,
-//           {
-//             x: Math.random() * (d.width - size.current.w),
-//             y: Math.random() * (d.height - size.current.h),
-//           },
-//           { width: size.current.w, height: size.current.h }
-//         );
-//       }}
-//     >
-//       <Text>Hi</Text>
-//     </Pressable>
-//   );
-// }
-
 const styles = StyleSheet.create({
+  full: {
+    flex: 1,
+  },
+  btn: {
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingBottom: 12,
+  },
   container: {
     flex: 1,
     paddingVertical: 60,

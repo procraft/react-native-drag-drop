@@ -1,6 +1,5 @@
 import { AutoScrollScrollView } from '@procraft/react-native-autoscroll';
 import React, { type ComponentProps } from 'react';
-import type { ScrollView } from 'react-native-gesture-handler';
 import type Animated from 'react-native-reanimated';
 import { useAnimatedRef, type AnimatedRef } from 'react-native-reanimated';
 import { useDragDropList } from '../hooks';
@@ -9,7 +8,7 @@ import type { DragDropAreaConfig } from '../types/DragDropAreaConfig';
 import { DragDropItem } from './DragDropItem';
 
 export interface DragDropScrollViewProps<T>
-  extends Omit<ComponentProps<ScrollView>, 'ref'> {
+  extends Omit<ComponentProps<Animated.ScrollView>, 'ref'> {
   items: T[];
   innerRef?: AnimatedRef<Animated.ScrollView>;
   config?: DragDropAreaConfig;
@@ -37,10 +36,15 @@ export function DragDropScrollView<T>(props: DragDropScrollViewProps<T>) {
   const animatedRef = useAnimatedRef<Animated.ScrollView>();
   const areaRef = innerRef ?? animatedRef;
 
+  const horizontal =
+    typeof horizontalProps === 'object'
+      ? horizontalProps?.value ?? false
+      : horizontalProps ?? false;
+
   const { areaId, items, registerItemHandler, onTransitionDone } =
     useDragDropList(
       areaRef,
-      horizontalProps ?? false,
+      horizontal,
       initialItems,
       extractId,
       config,
