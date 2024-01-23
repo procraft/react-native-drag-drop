@@ -85,6 +85,25 @@ export function useDragDropMove(
     [moveAnim]
   );
 
+  const onEndDrag = useCallback(() => {
+    'worklet';
+
+    stopScroll();
+    runOnJS(clearHoveredItem)();
+
+    if (dragDropItemInfo.value != null) {
+      dragDropItemInfo.value.onEnd?.();
+      modify(
+        dragDropItemInfo,
+        () => {
+          'worklet';
+          return null;
+        },
+        true
+      );
+    }
+  }, [dragDropItemInfo, clearHoveredItem, stopScroll]);
+
   const prevIsMoving = useSharedValue(isMoving.value);
   useDerivedValue(() => {
     if (isMoving.value === prevIsMoving.value) {
@@ -93,28 +112,7 @@ export function useDragDropMove(
     prevIsMoving.value = isMoving.value;
 
     runOnJS(setMoveAnimActive)(isMoving.value);
-    if (!isMoving.value) {
-      stopScroll();
-      runOnJS(clearHoveredItem)();
-      if (dragDropItemInfo.value != null) {
-        dragDropItemInfo.value.onEnd?.();
-        modify(
-          dragDropItemInfo,
-          () => {
-            'worklet';
-            return null;
-          },
-          true
-        );
-      }
-    }
-  }, [
-    isMoving,
-    dragDropItemInfo,
-    setMoveAnimActive,
-    stopScroll,
-    clearHoveredItem,
-  ]);
+  }, [isMoving, dragDropItemInfo, setMoveAnimActive, stopScroll]);
 
   return useMemo(
     () =>
@@ -153,6 +151,7 @@ export function useDragDropMove(
         })
         .onFinalize(() => {
           isMoving.value = false;
+          onEndDrag();
         })
         .onTouchesDown((e, manager) => {
           if (dragDropItemInfo.value != null && e.state === 2) {
@@ -172,6 +171,7 @@ export function useDragDropMove(
       hoveredItemMeasurement,
       measureHoveredItem,
       startScroll,
+      onEndDrag,
     ]
   );
 }
