@@ -18,7 +18,8 @@ export function useDragDropMove(
   isMoving: SharedValue<boolean>,
   dragDropItemInfo: SharedValue<DragDropItemInfo | null>,
   hoveredItemMeasurement: SharedValue<MeasuredDimensions | null>,
-  dragDropAreas: SharedValue<DragDropAreas>
+  dragDropAreas: SharedValue<DragDropAreas>,
+  onDragEnd: () => void
 ) {
   const { clearHoveredItem, moveHoveredItem, measureHoveredItem } =
     useContext(HoveredItemContext);
@@ -90,6 +91,7 @@ export function useDragDropMove(
 
     stopScroll();
     runOnJS(clearHoveredItem)();
+    onDragEnd();
 
     if (dragDropItemInfo.value != null) {
       dragDropItemInfo.value.onEnd?.();
@@ -102,7 +104,7 @@ export function useDragDropMove(
         true
       );
     }
-  }, [dragDropItemInfo, clearHoveredItem, stopScroll]);
+  }, [dragDropItemInfo, clearHoveredItem, stopScroll, onDragEnd]);
 
   const prevIsMoving = useSharedValue(isMoving.value);
   useDerivedValue(() => {

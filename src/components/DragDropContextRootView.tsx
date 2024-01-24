@@ -133,6 +133,18 @@ export function DragDropContextRootView(props: DragDropContextRootViewProps) {
     [startDragMeasureInfo]
   );
 
+  const onDragEnd = useCallback(() => {
+    'worklet';
+    modify(
+      startDragMeasureInfo,
+      () => {
+        'worklet';
+        return null;
+      },
+      true
+    );
+  }, [startDragMeasureInfo]);
+
   const value = useMemo<DragDropContextType>(
     () => ({ registerDragDropArea, removeDragDropArea, startDrag }),
     [registerDragDropArea, removeDragDropArea, startDrag]
@@ -142,7 +154,8 @@ export function DragDropContextRootView(props: DragDropContextRootViewProps) {
     isMoving,
     dragDropItemInfo,
     hoveredItemMeasurement,
-    dragDropAreas
+    dragDropAreas,
+    onDragEnd
   );
 
   return (
