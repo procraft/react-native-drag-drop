@@ -1,7 +1,8 @@
 import React, { useCallback, useContext, useEffect, useMemo } from 'react';
 import Animated, {
-  LinearTransition,
+  type LayoutAnimationFunction,
   measure,
+  runOnJS,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
@@ -82,8 +83,66 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
     [handler, itemId, registerItemHandler]
   );
 
+  useEffect(
+    () => () => {
+      onTransitionDone(itemId);
+    },
+    [itemId, onTransitionDone]
+  );
+
+  const needSkipAnimation = useSharedValue(false);
+
+  const disableSkipAnimation = useCallback(() => {
+    setTimeout(() => {
+      needSkipAnimation.value = false;
+    }, 100);
+  }, [needSkipAnimation]);
+
+  useDerivedValue(() => {
+    if (isActive.value) needSkipAnimation.value = true;
+    else {
+      runOnJS(disableSkipAnimation)();
+    }
+  }, [needSkipAnimation, isActive, disableSkipAnimation]);
+
+  const customAnimation = useCallback<LayoutAnimationFunction>(
+    (values) => {
+      'worklet';
+      const skipAnimation = needSkipAnimation.value;
+      return {
+        callback: (f) => {
+          if (f) {
+            needSkipAnimation.value = false;
+            onTransitionDone(itemId);
+          }
+        },
+        animations: {
+          originX: withTiming(values.targetOriginX, {
+            duration: skipAnimation ? 1 : 150,
+          }),
+          originY: withTiming(values.targetOriginY, {
+            duration: skipAnimation ? 1 : 150,
+          }),
+          width: withTiming(values.targetWidth, {
+            duration: skipAnimation ? 1 : 150,
+          }),
+          height: withTiming(values.targetHeight, {
+            duration: skipAnimation ? 1 : 150,
+          }),
+        },
+        initialValues: {
+          originX: values.currentOriginX,
+          originY: values.currentOriginY,
+          width: values.currentWidth,
+          height: values.currentHeight,
+        },
+      };
+    },
+    [itemId, needSkipAnimation, onTransitionDone]
+  );
+
   const opacityAnim = useDerivedValue(() => {
-    if (isActive.value)
+    if (needSkipAnimation.value)
       return withDelay(
         50,
         withTiming(0, {
@@ -100,21 +159,10 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
     [opacityAnim]
   );
 
-  useEffect(
-    () => () => {
-      onTransitionDone(itemId);
-    },
-    [itemId, onTransitionDone]
-  );
-
   return (
     <Animated.View
       ref={ref}
-      layout={LinearTransition.duration(200).withCallback((f) => {
-        if (f) {
-          onTransitionDone(itemId);
-        }
-      })}
+      layout={customAnimation}
       onLayout={({ nativeEvent }) => {
         size.value = {
           width: nativeEvent.layout.width,
