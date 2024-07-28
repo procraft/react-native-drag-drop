@@ -188,6 +188,7 @@ function createMoveBehavior<T>(
 ): MoveStrategy<T> {
   'worklet';
   return (movedResult, item) => {
+    'worklet';
     const listItem = itemsListShared.value.nodes[item.id];
     const canMove =
       movedResult == null
