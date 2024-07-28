@@ -4,4 +4,7 @@ export interface DragDropAreaConfig {
     horizontal?: boolean;
     vertical?: boolean;
   };
+  mode?: DragDropAreaConfigMode;
 }
+
+export type DragDropAreaConfigMode = 'MOVE' | 'SWAP';

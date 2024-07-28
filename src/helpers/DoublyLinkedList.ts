@@ -41,6 +41,10 @@ export type DoublyLinkedListHistory<T> =
   | DoublyLinkedListHistoryItem<
       'MoveAfter',
       { id: DoublyLinkedListNodeId; afterId: DoublyLinkedListNodeId | null }
+    >
+  | DoublyLinkedListHistoryItem<
+      'Swap',
+      { ids: [id: DoublyLinkedListNodeId, id: DoublyLinkedListNodeId] }
     >;
 
 export type DoublyLinkedListHistoryTypes =
@@ -275,12 +279,7 @@ export function DLAddItemBefore<T>(
   u?: undefined
 ) {
   'worklet';
-  const nextItem =
-    beforeId == null
-      ? list.tail == null
-        ? null
-        : list.nodes[list.tail]
-      : list.nodes[beforeId];
+  const nextItem = beforeId == null ? null : list.nodes[beforeId];
 
   if (nextItem === undefined) {
     return list;
@@ -397,6 +396,39 @@ export function DLMoveItemAfter<T>(
   return list;
 }
 
+export function DLSwapItems<T>(
+  list: DoublyLinkedList<T>,
+  itemIds: [id: number | string, id: number | string]
+) {
+  'worklet';
+  const items = [list.nodes[itemIds[0]], list.nodes[itemIds[1]]];
+  if (items.some((i) => i == null)) {
+    return list;
+  }
+
+  DLRemoveItem(list, itemIds[0], 1 as unknown as undefined);
+  DLRemoveItem(list, itemIds[1], 1 as unknown as undefined);
+
+  DLAddItemBefore(
+    list,
+    items[1]!.id,
+    items[1]!.data,
+    items[0]!.nextId === items[1]!.id ? items[1]!.nextId : items[0]!.nextId,
+    1 as unknown as undefined
+  );
+  DLAddItemBefore(
+    list,
+    items[0]!.id,
+    items[0]!.data,
+    items[1]!.nextId === items[0]!.nextId ? items[1]!.id : items[1]!.nextId,
+    1 as unknown as undefined
+  );
+
+  DLAddHistory(list, 'Swap', { ids: [...itemIds] });
+
+  return list;
+}
+
 export function DLRestoreHistory<T>(
   list: DoublyLinkedList<T>,
   historyItem: DoublyLinkedListHistory<T>
@@ -425,6 +457,8 @@ export function DLRestoreHistory<T>(
     DLMoveItemAfter(list, historyItem.data.id, historyItem.data.afterId);
   } else if (historyItem.type === 'MoveBefore') {
     DLMoveItemBefore(list, historyItem.data.id, historyItem.data.beforeId);
+  } else if (historyItem.type === 'Swap') {
+    DLSwapItems(list, historyItem.data.ids);
   }
 
   return list;
@@ -438,3 +472,4 @@ export const SDLAddItemBefore = cModify(DLAddItemBefore);
 export const SDLRemoveItem = cModify(DLRemoveItem);
 export const SDLMoveItemBefore = cModify(DLMoveItemBefore);
 export const SDLMoveItemAfter = cModify(DLMoveItemAfter);
+export const SDLSwapItems = cModify(DLSwapItems);

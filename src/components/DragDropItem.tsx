@@ -162,6 +162,7 @@ export const DragDropItem = React.memo(function DragDropItem<T>(
   return (
     <Animated.View
       ref={ref}
+      key={itemId}
       layout={customAnimation}
       onLayout={({ nativeEvent }) => {
         size.value = {

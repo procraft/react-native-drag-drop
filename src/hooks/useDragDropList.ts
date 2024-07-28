@@ -32,7 +32,11 @@ export function useDragDropList<T, TComponent extends Component>(
     listConfig
   );
   const { itemMoved, tryPutItem, removeItem, onTransitionDone } =
-    useDragDropListItemsActions(itemsListShared, findNeighboursItem);
+    useDragDropListItemsActions(
+      itemsListShared,
+      config?.mode ?? 'MOVE',
+      findNeighboursItem
+    );
   const { areaId } = useDragDropArea(
     areaRef,
     {

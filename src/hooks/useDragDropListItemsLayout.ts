@@ -71,7 +71,12 @@ export function useDragDropListItemsLayout<T>(
 
       let isBefore = true;
       let afterId: string | number | null | undefined;
+      let overId: string | number | null | undefined;
       for (const { handler, itemStart, itemSize } of handlersWithMeasure) {
+        if (hoverCenter > itemStart && hoverCenter < itemStart + itemSize) {
+          overId = handler.id;
+        }
+
         if (handler.id === itemId) {
           isBefore = false;
           continue;
@@ -81,17 +86,25 @@ export function useDragDropListItemsLayout<T>(
         const minStart = itemStart + itemSize / 2 + offset;
 
         if (hoverCenter < minStart) {
-          return isBefore ? { beforeId: handler.id } : { afterId };
+          return isBefore
+            ? { beforeId: handler.id, overId }
+            : { afterId, overId };
         } else if (!isBefore) {
           afterId = handler.id;
         }
       }
 
+      const result: ItemPosition = {};
+
       if (afterId != null) {
-        return { afterId };
+        result.afterId = afterId;
       }
 
-      return null;
+      if (overId != null) {
+        result.overId = overId;
+      }
+
+      return Object.keys(result).length > 0 ? result : null;
     },
     [listConfig, getSortedHandlers]
   );

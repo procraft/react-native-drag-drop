@@ -1,8 +1,10 @@
 import React from 'react';
 import type { DragDropAreaHandler } from '../handlers';
 import type { DragDropItemType } from '../types';
+import type { SharedValue } from 'react-native-reanimated';
 
 export interface DragDropContextType {
+  isMoving?: SharedValue<boolean>;
   startDrag: (
     area: {
       id: number;

@@ -146,8 +146,8 @@ export function DragDropContextRootView(props: DragDropContextRootViewProps) {
   }, [startDragMeasureInfo]);
 
   const value = useMemo<DragDropContextType>(
-    () => ({ registerDragDropArea, removeDragDropArea, startDrag }),
-    [registerDragDropArea, removeDragDropArea, startDrag]
+    () => ({ isMoving, registerDragDropArea, removeDragDropArea, startDrag }),
+    [isMoving, registerDragDropArea, removeDragDropArea, startDrag]
   );
 
   const gesture = useDragDropMove(

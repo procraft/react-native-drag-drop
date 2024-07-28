@@ -12,7 +12,7 @@ import { PairsDragDrop } from './PairsDragDrop';
 import { SimpleDragDrop } from './SimpleDragDrop';
 
 export default function App() {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
   const onNextStep = useCallback(() => {
     setStep((s) => (s + 1) % 2);
   }, []);

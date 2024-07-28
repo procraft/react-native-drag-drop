@@ -36,6 +36,7 @@ export function SimpleDragDrop(props: SimpleDragDropProps) {
       renderItem={renderItem}
       extractId={extractId}
       style={style}
+      config={{ mode: 'SWAP', axis: { horizontal: true, vertical: true } }}
     />
   );
 }
