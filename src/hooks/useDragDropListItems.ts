@@ -66,6 +66,12 @@ export function useDragDropListItems<T>(
           if (isActionMove(historyItem)) {
             prevPos = DLFindIndex(itemsListRef.current, historyItem.data.id);
           }
+          if (isActionSwap(historyItem)) {
+            prevPos = DLFindIndex(
+              itemsListRef.current,
+              historyItem.data.ids[0]
+            );
+          }
           DLRestoreHistory(itemsListRef.current, historyItem);
           if (isActionAdd(historyItem)) {
             onItemAdded?.(
@@ -83,6 +89,17 @@ export function useDragDropListItems<T>(
             const newPos = DLFindIndex(
               itemsListRef.current,
               historyItem.data.id
+            );
+            onItemChangedPosition?.(
+              convertDragDropToArr(DLToArray(itemsListRef.current)),
+              prevPos,
+              newPos
+            );
+          }
+          if (isActionSwap(historyItem) && prevPos > -1) {
+            const newPos = DLFindIndex(
+              itemsListRef.current,
+              historyItem.data.ids[0]
             );
             onItemChangedPosition?.(
               convertDragDropToArr(DLToArray(itemsListRef.current)),
@@ -140,4 +157,10 @@ function isActionMove<T>(
   'MoveAfter' | 'MoveBefore'
 > {
   return ACTIONS_MOVE.includes(historyItem.type);
+}
+
+function isActionSwap<T>(
+  historyItem: DoublyLinkedListHistory<DragDropItemType<T>>
+): historyItem is DoublyLinkedListHistoryType<DragDropItemType<T>, 'Swap'> {
+  return historyItem.type === 'Swap';
 }
